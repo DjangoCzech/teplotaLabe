@@ -1,156 +1,169 @@
 <!DOCTYPE html>
 <html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Teplota a stav řeky Labe - Němčice</title>
-    <link rel="stylesheet" href="style.css">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"
+    />
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🌊 Řeka Labe - Němčice</h1>
-            <p class="subtitle">Aktuální měření ČHMÚ</p>
-        </header>
+      <header>
+        <h1>🌊 Řeka Labe - Němčice</h1>
+        <p class="subtitle">Aktuální měření ČHMÚ</p>
+      </header>
 
-        <div class="main-stats">
-            <div class="stat-card temperature-card">
-                <div class="stat-icon">🌡️</div>
-                <div class="stat-content">
-                    <h2>Teplota vody</h2>
-                    <div class="stat-value" id="temperature">
-                        <span class="loading">Načítání...</span>
-                    </div>
-                    <div class="stat-time" id="temp-time"></div>
-                </div>
+      <div class="main-stats">
+        <div class="stat-card temperature-card">
+          <div class="stat-icon">🌡️</div>
+          <div class="stat-content">
+            <h2>Teplota vody</h2>
+            <div class="stat-value" id="temperature">
+              <span class="loading">Načítání...</span>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">📏</div>
-                <div class="stat-content">
-                    <h2>Stav hladiny</h2>
-                    <div class="stat-value" id="water-level">
-                        <span class="loading">Načítání...</span>
-                    </div>
-                    <div class="stat-time" id="level-time"></div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">💧</div>
-                <div class="stat-content">
-                    <h2>Průtok</h2>
-                    <div class="stat-value" id="flow-rate">
-                        <span class="loading">Načítání...</span>
-                    </div>
-                    <div class="stat-time" id="flow-time"></div>
-                </div>
-            </div>
+            <div class="stat-time" id="temp-time"></div>
+          </div>
         </div>
 
-        <div class="info-panel">
-            <h3>ℹ️ Informace o stanici</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Název stanice:</span>
-                    <span class="info-value">Němčice</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Tok:</span>
-                    <span class="info-value">Labe</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Kategorie:</span>
-                    <span class="info-value">A</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Provozovatel:</span>
-                    <span class="info-value">ČHMÚ Hradec Králové</span>
-                </div>
+        <div class="stat-card">
+          <div class="stat-icon">📏</div>
+          <div class="stat-content">
+            <h2>Stav hladiny</h2>
+            <div class="stat-value" id="water-level">
+              <span class="loading">Načítání...</span>
             </div>
+            <div class="stat-time" id="level-time"></div>
+          </div>
         </div>
 
-        <div class="alert-levels">
-            <h3>⚠️ Stupně povodňové aktivity</h3>
-            <div class="levels-grid">
-                <div class="level-item level-1">
-                    <span class="level-name">1. SPA (bdělost)</span>
-                    <span class="level-value">350 cm</span>
-                </div>
-                <div class="level-item level-2">
-                    <span class="level-name">2. SPA (pohotovost)</span>
-                    <span class="level-value">400 cm</span>
-                </div>
-                <div class="level-item level-3">
-                    <span class="level-name">3. SPA (ohrožení)</span>
-                    <span class="level-value">450 cm</span>
-                </div>
-                <div class="level-item level-drought">
-                    <span class="level-name">Sucho</span>
-                    <span class="level-value">54 cm</span>
-                </div>
+        <div class="stat-card">
+          <div class="stat-icon">💧</div>
+          <div class="stat-content">
+            <h2>Průtok</h2>
+            <div class="stat-value" id="flow-rate">
+              <span class="loading">Načítání...</span>
             </div>
+            <div class="stat-time" id="flow-time"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panel">
+        <h3>ℹ️ Informace o stanici</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Název stanice:</span>
+            <span class="info-value">Němčice</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tok:</span>
+            <span class="info-value">Labe</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Kategorie:</span>
+            <span class="info-value">A</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Provozovatel:</span>
+            <span class="info-value">ČHMÚ Hradec Králové</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-levels">
+        <h3>⚠️ Stupně povodňové aktivity</h3>
+        <div class="levels-grid">
+          <div class="level-item level-1">
+            <span class="level-name">1. SPA (bdělost)</span>
+            <span class="level-value">350 cm</span>
+          </div>
+          <div class="level-item level-2">
+            <span class="level-name">2. SPA (pohotovost)</span>
+            <span class="level-value">400 cm</span>
+          </div>
+          <div class="level-item level-3">
+            <span class="level-name">3. SPA (ohrožení)</span>
+            <span class="level-value">450 cm</span>
+          </div>
+          <div class="level-item level-drought">
+            <span class="level-name">Sucho</span>
+            <span class="level-value">54 cm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-section">
+        <h3>📊 Grafy měření (posledních 48 hodin)</h3>
+
+        <div class="chart-container">
+          <h4>Teplota vody</h4>
+          <canvas id="temperatureChart"></canvas>
         </div>
 
-        <div class="charts-section">
-            <h3>📊 Grafy měření (posledních 48 hodin)</h3>
-            
-            <div class="chart-container">
-                <h4>Teplota vody</h4>
-                <canvas id="temperatureChart"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <h4>Stav hladiny</h4>
-                <canvas id="waterLevelChart"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <h4>Průtok</h4>
-                <canvas id="flowChart"></canvas>
-            </div>
+        <div class="chart-container">
+          <h4>Stav hladiny</h4>
+          <canvas id="waterLevelChart"></canvas>
         </div>
 
-        <div class="data-table-section">
-            <h3>📋 Poslední měření</h3>
-            <div class="table-wrapper">
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>Datum a čas</th>
-                            <th>Stav [cm]</th>
-                            <th>Průtok [m³/s]</th>
-                            <th>Teplota [°C]</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="4" class="loading-cell">Načítání dat...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="chart-container">
+          <h4>Průtok</h4>
+          <canvas id="flowChart"></canvas>
         </div>
+      </div>
 
-        <footer>
-            <p>Data ze stránky <a href="https://hydro.chmi.cz/hppsoldv/hpps_prfdata.php?seq=307338" target="_blank">ČHMÚ</a></p>
-            <p>Automatické obnovení každých 5 minut</p>
-            <p class="last-update">Poslední aktualizace: <span id="lastUpdate">-</span></p>
-        </footer>
+      <div class="data-table-section">
+        <h3>📋 Poslední měření</h3>
+        <div class="table-wrapper">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>Datum a čas</th>
+                <th>Stav [cm]</th>
+                <th>Průtok [m³/s]</th>
+                <th>Teplota [°C]</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="4" class="loading-cell">Načítání dat...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          Data ze stránky
+          <a
+            href="https://hydro.chmi.cz/hppsoldv/hpps_prfdata.php?seq=307338"
+            target="_blank"
+            >ČHMÚ</a
+          >
+        </p>
+        <p>Automatické obnovení každých 5 minut</p>
+        <p class="last-update">
+          Poslední aktualizace: <span id="lastUpdate">-</span>
+        </p>
+      </footer>
     </div>
 
     <!-- Modal pro detailní graf -->
     <div id="chartModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h3 id="modalTitle">Graf teploty - posledních 24 hodin</h3>
-            <div class="modal-chart-container">
-                <canvas id="modalChart"></canvas>
-            </div>
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h3 id="modalTitle">Graf teploty - posledních 24 hodin</h3>
+        <div class="modal-chart-container">
+          <canvas id="modalChart"></canvas>
         </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
