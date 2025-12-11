@@ -1,0 +1,26 @@
+name: Deploy to Wedos via FTP
+
+on:
+  push:
+    branches:
+      - main   # nebo "master" podle toho, jak se jmenuje tvoje hlavní větev
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Stáhne zdrojáky z repa
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) FTP deploy – použijeme hotovou akci
+      - name: Upload to FTP server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          local-dir: ./   # odkud nahrávat (root repozitáře)
+          dangerous-clean-slate: false  # true = smaže vše na serveru před nahráním (opatrně!)
