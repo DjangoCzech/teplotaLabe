@@ -2,8 +2,13 @@
 -- This script creates the necessary tables for storing water temperature and measurement data
 
 -- Create database (optional, comment out if database already exists)
+<<<<<<< HEAD
 CREATE DATABASE IF NOT EXISTS d388414_templ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE d388414_templ;
+=======
+CREATE DATABASE IF NOT EXISTS teplota_labe CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE teplota_labe;
+>>>>>>> 3972bb02801de949c96879360300d4cd8a7fbe35
 
 -- Table for storing measurements
 -- Stores all measurements from ČHMÚ including temperature, water level, and flow rate
