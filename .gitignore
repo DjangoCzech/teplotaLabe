@@ -1,0 +1,22 @@
+# Configuration file with sensitive data
+config.php
+
+# Debug logs
+fetch_debug.json
+
+# PHP error logs
+*.log
+
+# Backup files
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
