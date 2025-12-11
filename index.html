@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card level-card">
           <div class="stat-icon">📏</div>
           <div class="stat-content">
             <h2>Stav hladiny</h2>
@@ -41,7 +41,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card flow-card">
           <div class="stat-icon">💧</div>
           <div class="stat-content">
             <h2>Průtok</h2>
@@ -76,29 +76,24 @@
       </div>
 
       <div class="alert-levels">
-        <h3>⚠️ Stupně povodňové aktivity</h3>
-        <div class="levels-grid">
-          <div class="level-item level-1">
-            <span class="level-name">1. SPA (bdělost)</span>
-            <span class="level-value">350 cm</span>
-          </div>
-          <div class="level-item level-2">
-            <span class="level-name">2. SPA (pohotovost)</span>
-            <span class="level-value">400 cm</span>
-          </div>
-          <div class="level-item level-3">
-            <span class="level-name">3. SPA (ohrožení)</span>
-            <span class="level-value">450 cm</span>
-          </div>
-          <div class="level-item level-drought">
-            <span class="level-name">Sucho</span>
-            <span class="level-value">54 cm</span>
+        <h3>⚠️ Aktuální stav</h3>
+        <div class="current-status" id="currentStatus">
+          <div class="level-item level-normal">
+            <span class="level-name">Načítání...</span>
+            <span class="level-value">-</span>
           </div>
         </div>
       </div>
 
       <div class="charts-section">
-        <h3>📊 Grafy měření (posledních 48 hodin)</h3>
+        <div class="charts-header">
+          <h3>📊 Grafy měření</h3>
+          <div class="time-range-selector">
+            <button class="range-btn active" data-range="48">48 hodin</button>
+            <button class="range-btn" data-range="168">7 dní</button>
+            <button class="range-btn" data-range="all">Vše</button>
+          </div>
+        </div>
 
         <div class="chart-container">
           <h4>Teplota vody</h4>

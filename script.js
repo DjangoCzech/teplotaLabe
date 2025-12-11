@@ -1,6 +1,5 @@
 // Configuration
-const PROXY_URL = "https://api.allorigins.win/raw?url=";
-const DATA_URL = "https://hydro.chmi.cz/hppsoldv/hpps_prfdata.php?seq=307338";
+const API_URL = "api.php"; // Local PHP API endpoint
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // Chart instances
@@ -8,12 +7,29 @@ let temperatureChart = null;
 let waterLevelChart = null;
 let flowChart = null;
 
-// Fetch and parse data from ČHMÚ
-async function fetchData() {
+// Time range for charts (in hours, or 'all')
+let chartTimeRange = 48; // Default 48 hours
+
+// Fetch data from local PHP API
+async function fetchData(limit = null) {
   try {
-    const response = await fetch(PROXY_URL + encodeURIComponent(DATA_URL));
-    const html = await response.text();
-    return parseData(html);
+    // Always fetch maximum data to allow switching between ranges
+    if (limit === null) {
+      limit = 500; // Maximum allowed by API
+    }
+
+    const url = `${API_URL}?limit=${limit}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const json = await response.json();
+
+    if (!json.success) {
+      throw new Error(json.error || "Failed to fetch data");
+    }
+
+    return json.data;
   } catch (error) {
     console.error("Error fetching data:", error);
     showError("Nepodařilo se načíst data. Zkuste to prosím později.");
@@ -21,51 +37,69 @@ async function fetchData() {
   }
 }
 
-// Parse HTML data
-function parseData(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+// Update flood status based on water level
+function updateFloodStatus(level) {
+  const statusDiv = document.getElementById("currentStatus");
+  if (!statusDiv) return;
 
-  // Find the measured data table with class "tborder center_text"
-  const tables = doc.querySelectorAll("div.tborder.center_text");
-  let dataTable = null;
-
-  // Get the first table with class "tborder center_text" (measured data)
-  if (tables.length > 0) {
-    dataTable = tables[0];
+  const levelNum = parseFloat(level);
+  if (isNaN(levelNum)) {
+    statusDiv.innerHTML = `
+      <div class="level-item level-normal">
+        <span class="level-name">Nedá se určit</span>
+        <span class="level-value">-</span>
+      </div>
+    `;
+    return;
   }
 
-  if (!dataTable) {
-    console.error("Data table not found");
-    return null;
+  let statusHtml = "";
+
+  if (levelNum > 659) {
+    statusHtml = `
+      <div class="level-item level-extreme">
+        <span class="level-name">🔴 3. SPA (extrémní povodeň)</span>
+        <span class="level-value">Aktuální stav: ${level} cm</span>
+      </div>
+    `;
+  } else if (levelNum > 450) {
+    statusHtml = `
+      <div class="level-item level-3">
+        <span class="level-name">🔴 3. SPA (ohrožení)</span>
+        <span class="level-value">Aktuální stav: ${level} cm</span>
+      </div>
+    `;
+  } else if (levelNum > 400) {
+    statusHtml = `
+      <div class="level-item level-2">
+        <span class="level-name">🟠 2. SPA (pohotovost)</span>
+        <span class="level-value">Aktuální stav: ${level} cm</span>
+      </div>
+    `;
+  } else if (levelNum > 350) {
+    statusHtml = `
+      <div class="level-item level-1">
+        <span class="level-name">🟡 1. SPA (bdělost)</span>
+        <span class="level-value">Aktuální stav: ${level} cm</span>
+      </div>
+    `;
+  } else if (levelNum < 54) {
+    statusHtml = `
+      <div class="level-item level-drought">
+        <span class="level-name">🟤 Sucho</span>
+        <span class="level-value">Aktuální stav: ${level} cm (< 54 cm)</span>
+      </div>
+    `;
+  } else {
+    statusHtml = `
+      <div class="level-item level-normal">
+        <span class="level-name">🟢 Normální stav</span>
+        <span class="level-value">Aktuální stav: ${level} cm</span>
+      </div>
+    `;
   }
 
-  const rows = dataTable.querySelectorAll("tr");
-  const data = [];
-
-  // Skip header row (first row)
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    const cells = row.querySelectorAll("td");
-
-    if (cells.length >= 4) {
-      const dateTime = cells[0].textContent.trim();
-      const level = cells[1].textContent.trim();
-      const flow = cells[2].textContent.trim();
-      const temp = cells[3].textContent.trim();
-
-      if (dateTime && dateTime !== "" && !dateTime.includes("Datum")) {
-        data.push({
-          dateTime: dateTime,
-          level: level || "-",
-          flow: flow || "-",
-          temperature: temp || "-",
-        });
-      }
-    }
-  }
-
-  return data;
+  statusDiv.innerHTML = statusHtml;
 }
 
 // Update main statistics
@@ -96,6 +130,9 @@ function updateMainStats(data) {
     document.getElementById(
       "level-time"
     ).textContent = `Měřeno: ${latest.dateTime}`;
+
+    // Update flood status
+    updateFloodStatus(latest.level);
   }
 
   // Update flow rate
@@ -144,11 +181,38 @@ function updateTemperatureChart(data) {
   const ctx = document.getElementById("temperatureChart");
   if (!ctx) return;
 
-  // Filter data with temperature values (last 48 hours)
-  const tempData = data
-    .filter((d) => d.temperature !== "-" && d.temperature !== "")
-    .slice(0, 48)
-    .reverse();
+  // Filter data with temperature values
+  let tempData = data.filter(
+    (d) => d.temperature !== "-" && d.temperature !== ""
+  );
+
+  // Apply time range based on actual time difference
+  if (chartTimeRange !== "all") {
+    const now = new Date();
+    const cutoffTime = new Date(
+      now.getTime() - chartTimeRange * 60 * 60 * 1000
+    );
+
+    tempData = tempData.filter((d) => {
+      // Parse Czech date format: "DD.MM.YYYY HH:MM"
+      const parts = d.dateTime.match(
+        /(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/
+      );
+      if (parts) {
+        const recordDate = new Date(
+          parts[3],
+          parts[2] - 1,
+          parts[1],
+          parts[4],
+          parts[5]
+        );
+        return recordDate >= cutoffTime;
+      }
+      return true;
+    });
+  }
+
+  tempData = tempData.reverse();
 
   const labels = tempData.map((d) => {
     const parts = d.dateTime.split(" ");
@@ -211,11 +275,35 @@ function updateWaterLevelChart(data) {
   const ctx = document.getElementById("waterLevelChart");
   if (!ctx) return;
 
-  // Get last 48 data points
-  const levelData = data
-    .filter((d) => d.level !== "-")
-    .slice(0, 48)
-    .reverse();
+  // Filter data with level values
+  let levelData = data.filter((d) => d.level !== "-");
+
+  // Apply time range based on actual time difference
+  if (chartTimeRange !== "all") {
+    const now = new Date();
+    const cutoffTime = new Date(
+      now.getTime() - chartTimeRange * 60 * 60 * 1000
+    );
+
+    levelData = levelData.filter((d) => {
+      const parts = d.dateTime.match(
+        /(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/
+      );
+      if (parts) {
+        const recordDate = new Date(
+          parts[3],
+          parts[2] - 1,
+          parts[1],
+          parts[4],
+          parts[5]
+        );
+        return recordDate >= cutoffTime;
+      }
+      return true;
+    });
+  }
+
+  levelData = levelData.reverse();
 
   const labels = levelData.map((d) => {
     const parts = d.dateTime.split(" ");
@@ -278,11 +366,35 @@ function updateFlowChart(data) {
   const ctx = document.getElementById("flowChart");
   if (!ctx) return;
 
-  // Get last 48 data points
-  const flowData = data
-    .filter((d) => d.flow !== "-")
-    .slice(0, 48)
-    .reverse();
+  // Filter data with flow values
+  let flowData = data.filter((d) => d.flow !== "-");
+
+  // Apply time range based on actual time difference
+  if (chartTimeRange !== "all") {
+    const now = new Date();
+    const cutoffTime = new Date(
+      now.getTime() - chartTimeRange * 60 * 60 * 1000
+    );
+
+    flowData = flowData.filter((d) => {
+      const parts = d.dateTime.match(
+        /(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/
+      );
+      if (parts) {
+        const recordDate = new Date(
+          parts[3],
+          parts[2] - 1,
+          parts[1],
+          parts[4],
+          parts[5]
+        );
+        return recordDate >= cutoffTime;
+      }
+      return true;
+    });
+  }
+
+  flowData = flowData.reverse();
 
   const labels = flowData.map((d) => {
     const parts = d.dateTime.split(" ");
@@ -350,6 +462,15 @@ function showError(message) {
   container.insertBefore(errorDiv, container.firstChild);
 
   setTimeout(() => errorDiv.remove(), 5000);
+}
+
+// Update only charts with current data
+function updateAllCharts() {
+  if (currentData) {
+    updateTemperatureChart(currentData);
+    updateWaterLevelChart(currentData);
+    updateFlowChart(currentData);
+  }
 }
 
 // Main update function
@@ -522,6 +643,45 @@ document.addEventListener("DOMContentLoaded", () => {
       openModal("temperature");
     });
   }
+
+  // Add click listener to water level card
+  const levelCard = document.querySelector(".level-card");
+  if (levelCard) {
+    levelCard.addEventListener("click", () => {
+      openModal("level");
+    });
+  }
+
+  // Add click listener to flow card
+  const flowCard = document.querySelector(".flow-card");
+  if (flowCard) {
+    flowCard.addEventListener("click", () => {
+      openModal("flow");
+    });
+  }
+
+  // Time range selector handlers
+  const rangeButtons = document.querySelectorAll(".range-btn");
+  rangeButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      // Remove active class from all buttons
+      rangeButtons.forEach((b) => b.classList.remove("active"));
+
+      // Add active class to clicked button
+      btn.classList.add("active");
+
+      // Get the range value
+      const range = btn.getAttribute("data-range");
+      chartTimeRange = range === "all" ? "all" : parseInt(range);
+
+      // Fetch new data with appropriate limit
+      const data = await fetchData();
+      if (data) {
+        currentData = data;
+        updateAllCharts();
+      }
+    });
+  });
 
   // Modal close handlers
   const modal = document.getElementById("chartModal");
