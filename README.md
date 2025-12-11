@@ -45,10 +45,14 @@ Otevřete phpMyAdmin: http://localhost/phpmyadmin
 
 **Způsob B - Ručně:**
 
-1. Vytvořte novou databázi s názvem: `d388414_templ`
-2. Charset: `utf8mb4`
-3. Collation: `utf8mb4_unicode_ci`
-4. Otevřete SQL kartu a vložte obsah souboru `database.sql`
+<<<<<<< HEAD
+
+1. # Vytvořte novou databázi s názvem: `d388414_templ`
+1. Vytvořte novou databázi s názvem: `teplota_labe`
+   > > > > > > > 3972bb02801de949c96879360300d4cd8a7fbe35
+1. Charset: `utf8mb4`
+1. Collation: `utf8mb4_unicode_ci`
+1. Otevřete SQL kartu a vložte obsah souboru `database.sql`
 
 ### 3. Zkontrolujte konfiguraci
 
@@ -88,53 +92,147 @@ Inserted/updated XX records
 http://localhost/teplotaLabe/
 ```
 
-## 🔄 Automatické aktualizace dat
+## 🔄 Automatické aktualizace dat na pozadí
 
-### Lokálně - Windows Task Scheduler
+Data se aktualizují automaticky pomocí **fetch_data.php**, který:
 
-#### Vytvoření .bat souboru
+- Stahuje aktuální měření z ČHMÚ
+- Ukládá nové záznamy do databáze
+- Ověřuje duplicity podle času měření
+- Loguje všechny operace
 
-Vytvořte soubor `fetch_data.bat` ve složce projektu:
+### 🪟 Lokálně - Windows Task Scheduler
+
+Soubor **fetch_data.bat** je již připraven v projektu!
+
+#### 1. Test ručního spuštění
+
+Nejdřív otestuj, zda batch funguje:
 
 ```batch
-@echo off
-cd /d "c:\xampp\htdocs\teplotaLabe"
-c:\xampp\php\php.exe fetch_data.php
+# Ve složce projektu spusť:
+fetch_data.bat
 ```
 
-#### Nastavení Task Scheduleru
+Měl bys vidět výstup o načtených datech.
 
-1. Otevřete "Task Scheduler" (Plánovač úloh)
-2. Klikněte "Create Basic Task" (Vytvořit základní úlohu)
-3. Název: "Teplota Labe - Data Fetch"
-4. Trigger: "Daily" (Denně)
-5. Start time: libovolný čas
-6. Action: "Start a program"
-7. Program/script: `c:\xampp\htdocs\teplotaLabe\fetch_data.bat`
-8. V pokročilém nastavení:
-   - Zaškrtněte "Run task as soon as possible after a scheduled start is missed"
-   - Zaškrtněte "Repeat task every: 30 minutes"
-   - Duration: "Indefinitely"
+#### 2. Nastavení automatického spouštění
 
-### Na serveru - Linux Cron
+**Krok 1:** Otevři **Task Scheduler** (Plánovač úloh Windows)
 
-Otevřete crontab:
+- Stiskni `Win + R`, napiš `taskschd.msc` a stiskni Enter
+
+**Krok 2:** Vytvoř novou úlohu
+
+- Klikni "Create Basic Task..." (Vytvořit základní úlohu)
+- Název: `Teplota Labe - Auto Update`
+- Popis: `Automatické stahování dat z ČHMÚ každých 30 minut`
+
+**Krok 3:** Trigger (spouštěč)
+
+- Vyber: **Daily** (Denně)
+- Start: dnes, libovolný čas (např. 00:00)
+- Recur every: **1** days
+
+**Krok 4:** Action (akce)
+
+- Vyber: **Start a program** (Spustit program)
+- Program/script: `C:\xampp\htdocs\teplotaLabe\fetch_data.bat`
+- Start in: `C:\xampp\htdocs\teplotaLabe`
+
+**Krok 5:** Pokročilá nastavení
+Po vytvoření úlohy:
+
+- Najdi ji v seznamu úloh a klikni pravým → **Properties** (Vlastnosti)
+- Záložka **Triggers** → **Edit**
+  - ✅ Zaškrtni: **Repeat task every: 30 minutes**
+  - ✅ For a duration of: **Indefinitely** (Neomezeně)
+- Záložka **Conditions**
+  - ❌ Odškrtni: "Start the task only if the computer is on AC power"
+- Záložka **Settings**
+  - ✅ Zaškrtni: "Run task as soon as possible after a scheduled start is missed"
+  - ✅ Zaškrtni: "If the task fails, restart every: 5 minutes"
+
+**Krok 6:** Uložení a test
+
+- Klikni **OK**
+- Pravým na úlohu → **Run** pro okamžité spuštění testu
+
+#### 3. Sledování logů
+
+Logy najdeš v: `logs/` složce (vytvoří se automaticky)
+
+---
+
+### 🐧 Na serveru - Linux Cron
+
+Soubor **fetch_data.sh** je již připraven! Nejdřív ho udělej spustitelným:
+
+```bash
+cd /cesta/k/teplotaLabe
+chmod +x fetch_data.sh
+```
+
+#### Nastavení cronu
+
+**Otevři crontab:**
 
 ```bash
 crontab -e
 ```
 
-Přidejte řádek (stahování každých 30 minut):
+**Přidej řádek pro spouštění každých 30 minut:**
 
 ```bash
-*/30 * * * * /usr/bin/php /path/to/teplotaLabe/fetch_data.php >> /path/to/teplotaLabe/logs/cron.log 2>&1
+*/30 * * * * /cesta/k/teplotaLabe/fetch_data.sh
 ```
 
-Nebo přes wget/curl:
+**Nebo přímo přes PHP:**
 
 ```bash
-*/30 * * * * /usr/bin/curl -s https://vase-domena.cz/teplotaLabe/fetch_data.php >> /path/to/logs/cron.log 2>&1
+*/30 * * * * /usr/bin/php /cesta/k/teplotaLabe/fetch_data.php >> /cesta/k/teplotaLabe/logs/fetch.log 2>&1
 ```
+
+**Nebo přes curl (pokud je projekt na webu):**
+
+```bash
+*/30 * * * * /usr/bin/curl -s https://vase-domena.cz/teplotaLabe/fetch_data.php >> /cesta/k/logs/cron.log 2>&1
+```
+
+#### Ověření, že cron běží:
+
+```bash
+# Zobraz aktivní cron joby
+crontab -l
+
+# Sleduj logy
+tail -f /cesta/k/teplotaLabe/logs/fetch.log
+```
+
+---
+
+### 📊 Jak to funguje
+
+**Co dělá automatická aktualizace:**
+
+1. **Každých 30 minut** se spustí `fetch_data.php`
+2. Skript se připojí na ČHMÚ web a stáhne HTML data
+3. Parsuje tabulku s měřeními (datum, hladina, průtok, teplota)
+4. **Kontroluje duplicity** - vloží pouze nová měření (podle `date_time`)
+5. Loguje operaci do `fetch_log` tabulky
+6. **Čistí stará data** - maže záznamy starší než 7 dní
+
+**Výhody:**
+
+- ✅ Data jsou vždy aktuální
+- ✅ Stránka se načítá rychle (data z databáze, ne z ČHMÚ)
+- ✅ Funguje i když ČHMÚ web je nedostupný (zobrazí poslední data)
+- ✅ Žádné duplicity v databázi
+
+**Sledování:**
+
+- Zobraz poslední fetch: `SELECT * FROM fetch_log ORDER BY fetch_time DESC LIMIT 10;`
+- Zobraz nejnovější měření: `SELECT * FROM measurements ORDER BY date_time DESC LIMIT 5;`
 
 ## 🌐 Nasazení na produkční server
 

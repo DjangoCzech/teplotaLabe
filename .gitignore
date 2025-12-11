@@ -4,6 +4,10 @@ config.php
 # Debug logs
 fetch_debug.json
 
+# Log directory (but keep .gitkeep)
+logs/*.log
+logs/fetch.log*
+
 # PHP error logs
 *.log
 

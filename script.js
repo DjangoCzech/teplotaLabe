@@ -18,7 +18,9 @@ async function fetchData(limit = null) {
       limit = 500; // Maximum allowed by API
     }
 
-    const url = `${API_URL}?limit=${limit}`;
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    const url = `${API_URL}?limit=${limit}&_t=${timestamp}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
